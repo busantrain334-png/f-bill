@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Invoice Replica — Editable Product Names Only</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --page-width: 210mm;
+      --page-height: 297mm;
+      --page-pad: 14mm;
+      --border: 1px solid #000;
+      --fs-sm: 11px;
+      --fs: 13px;
+      --fs-lg: 16px;
+      --fs-xl: 20px;
+      --leading: 1.35;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000;
+      line-height: var(--leading);
+      font-size: var(--fs);
+    }
+
+    /* Screen container */
+    .sheet {
+      width: var(--page-width);
+      min-height: var(--page-height);
+      margin: 12mm auto;
+      background: #fff;
+      box-shadow: 0 6px 30px rgba(0,0,0,.15);
+      padding: var(--page-pad);
+      position: relative;
+    }
+
+    .page-title {
+      text-transform: uppercase;
+      font-weight: 700;
+      font-size: var(--fs-xl);
+      margin: 0 0 6px;
+    }
+    .badge {
+      font-size: var(--fs-sm);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      border: 1px solid #000;
+      padding: 4px 6px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .grid { display: grid; gap: 8px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    .kv { display: grid; grid-template-columns: 180px 1fr; gap: 6px 10px; }
+    .kv > div { padding: 2px 0; }
+
+    .section-title {
+      font-weight: 700;
+      margin: 14px 0 6px;
+      text-transform: none;
+      font-size: var(--fs-lg);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: var(--fs);
+    }
+    th, td {
+      border: var(--border);
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    th { font-weight: 700; text-align: left; }
+    tfoot td { font-weight: 700; }
+
+    .muted { opacity: .9; font-size: var(--fs-sm); }
+    .right { text-align: right; }
+    .center { text-align: center; }
+    .nowrap { white-space: nowrap; }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 10px 0 0;
+      flex-wrap: wrap;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid #111;
+      background: #fff;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: var(--fs);
+    }
+    .btn:hover { background: #f0f0f0; }
+
+    /* Inputs for product names only */
+    input.name-input {
+      width: 100%;
+      border: 1px dashed #888;
+      padding: 4px 6px;
+      font-size: var(--fs);
+    }
+    input.name-input:focus { outline: 1px solid #000; }
+
+    /* Delete links inside rows */
+    .row-actions { white-space: nowrap; }
+    .link {
+      border: 0;
+      background: none;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: var(--fs-sm);
+      padding: 0;
+    }
+
+    .stamp {
+      position: absolute;
+      right: var(--page-pad);
+      bottom: var(--page-pad);
+      font-size: var(--fs-sm);
+      opacity: .8;
+    }
+
+    /* Page 2 header box */
+    .box {
+      border: var(--border);
+      padding: 8px 10px;
+      margin-top: 8px;
+    }
+
+    /* Print styles */
+    @media print {
+      body { background: #fff; }
+      .sheet {
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+      }
+      .controls { display: none !important; }
+      input.name-input {
+        border: 0;
+        padding: 0;
+      }
+      a { color: #000; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Controls (hidden when printing) -->
+  <div class="controls" role="group" aria-label="Page actions">
+    <button class="btn" onclick="window.print()">Save as PDF / Print</button>
+    <span class="muted">Tip: Edit product names below. Use "Add item" to add rows (amounts stay locked).</span>
+  </div>
+
+  <!-- =========================
+       PAGE 1 — Restaurant Tax Invoice (Replica)
+       ========================= -->
+  <section class="sheet" id="page1">
+    <div class="badge">Original for recipient</div>
+    <h1 class="page-title">Tax Invoice</h1>
+
+    <p class="muted">Tax Invoice on behalf of -</p>
+    <div class="grid grid-2">
+      <div class="kv">
+        <div><strong>Legal Entity Name</strong></div><div>Keshav The Family Restaurant</div>
+        <div><strong>Restaurant Name</strong></div><div>Keshav Restaurant</div>
+        <div><strong>Restaurant Address</strong></div>
+        <div>Shantinagar Society, Vrundavan Char Rasta, Waghodia Dabhoi Ring Road, Kendranagar, Vadodara</div>
+        <div><strong>Restaurant GSTIN</strong></div><div><!-- Not provided in sample --></div>
+        <div><strong>Restaurant FSSAI</strong></div><div>10720032000761</div>
+      </div>
+      <div class="kv">
+        <div><strong>Invoice No.</strong></div><div>25ARZGWB00004232</div>
+        <div><strong>Invoice Date</strong></div><div>07/08/2025</div>
+        <div><strong>Customer Name</strong></div><div>Ashwin Surana</div>
+        <div><strong>Delivery Address</strong></div><div>Suamndeep, 391760</div>
+        <div><strong>State name &amp; Place of Supply</strong></div><div>Gujarat (24)</div>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="kv" style="max-width: 380px;">
+        <div><strong>HSN Code</strong></div><div>996331</div>
+        <div><strong>Service Description</strong></div><div>Restaurant Service</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" onclick="addRow('items1')">Add item</button>
+    </div>
+
+    <table aria-label="Items table (Page 1)">
+      <thead>
+        <tr>
+          <th>Particulars</th>
+          <th class="right">Gross value</th>
+          <th class="right">Discount</th>
+          <th class="right">Net value</th>
+          <th class="center">CGST<br><span class="muted">Rate</span></th>
+          <th class="right">CGST (INR)</th>
+          <th class="center">SGST<br><span class="muted">Rate</span></th>
+          <th class="right">SGST (INR)</th>
+          <th class="right">Total</th>
+          <th class="row-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="items1">
+        <tr>
+          <td><input class="name-input" value="Khichdi with Kadhi" /></td>
+          <td class="right">140</td>
+          <td class="right">56</td>
+          <td class="right">84</td>
+          <td class="center">2.5%</td>
+          <td class="right">2.1</td>
+          <td class="center">2.5%</td>
+          <td class="right">2.1</td>
+          <td class="right">88.2</td>
+          <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
+        </tr>
+        <tr>
+          <td><input class="name-input" value="Gulab Jamun [3 Pieces]" /></td>
+          <td class="right">60</td>
+          <td class="right">24</td>
+          <td class="right">36</td>
+          <td class="center">2.5%</td>
+          <td class="right">0.9</td>
+          <td class="center">2.5%</td>
+          <td class="right">0.9</td>
+          <td class="right">37.8</td>
+          <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
+        </tr>
+        <!-- Template row for adding new items where only the name is editable; amounts remain 0 -->
+        <tr class="template" id="tmpl1" style="display:none;">
+          <td><input class="name-input" placeholder="New item name" /></td>
+          <td class="right">0</td>
+          <td class="right">0</td>
+          <td class="right">0</td>
+          <td class="center">—</td>
+          <td class="right">0</td>
+          <td class="center">—</td>
+          <td class="right">0</td>
+          <td class="right">0</td>
+          <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="right"><strong>Item(s) Total</strong></td>
+          <td class="right">200</td>
+          <td class="right">80</td>
+          <td class="right">120</td>
+          <td class="center"></td>
+          <td class="right">3</td>
+          <td class="center"></td>
+          <td class="right">3</td>
+          <td class="right">126</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="right"><strong>Total Value</strong></td>
+          <td class="right"></td>
+          <td class="right"></td>
+          <td class="right">120</td>
+          <td class="center"></td>
+          <td class="right">3</td>
+          <td class="center"></td>
+          <td class="right">3</td>
+          <td class="right">126</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p class="muted" style="margin-top:8px;"><strong>Amount (in words):</strong> One Hundred Twenty Six Rupees And Zero Paisa Only</p>
+    <p class="muted">Amount of INR 126 settled through digital mode/payment received against Order ID: 7138695734 dated 2025-08-07.</p>
+
+    <div class="grid grid-3" style="margin-top: 10px;">
+      <div class="kv">
+        <div><strong>Supply attracts reverse charge</strong></div><div>No</div>
+      </div>
+      <div class="kv">
+        <div><strong>Eternal PAN</strong></div><div>AADCD4946L</div>
+        <div><strong>Eternal CIN</strong></div><div>L93030DL2010PLC198141</div>
+      </div>
+      <div class="kv">
+        <div><strong>Eternal GST</strong></div><div>24AADCD4946L1ZG</div>
+        <div><strong>Eternal FSSAI</strong></div><div>10019064001810</div>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top: 10px;"><em>For ETERNAL LIMITED (FORMERLY KNOWN AS ZOMATO LIMITED)</em><br/>Authorised Signatory</p>
+    <p class="muted">Powered by TCPDF (www.tcpdf.org)</p>
+    <div class="stamp">ORIGINAL FOR RECIPIENT</div>
+  </section>
+
+  <!-- =========================
+       PAGE 2 — Eternal Limited Invoice (Replica)
+       ========================= -->
+  <section class="sheet" id="page2">
+    <div class="badge">Original for recipient</div>
+    <h1 class="page-title">Tax Invoice</h1>
+
+    <div class="box">
+      <div class="grid grid-2">
+        <div class="kv">
+          <div><strong>ETERNAL LIMITED (FORMERLY KNOWN AS ZOMATO LIMITED)</strong></div><div></div>
+          <div><strong>Address</strong></div>
+          <div>4th Floor, Block F, Ishan, Bhailal Amin Marg, Sarabhai Campus, Vadodara - 390023</div>
+          <div><strong>PAN</strong></div><div>AADCD4946L</div>
+          <div><strong>State</strong></div><div>Gujarat</div>
+          <div><strong>Email ID</strong></div><div>order@zomato.com</div>
+        </div>
+        <div class="kv">
+          <div><strong>CIN</strong></div><div>L93030DL2010PLC198141</div>
+          <div><strong>GSTIN</strong></div><div>24AADCD4946L1ZG</div>
+          <div><strong>Invoice No</strong></div><div>Z26GJOT002460138</div>
+          <div><strong>Invoice Date</strong></div><div>2025-08-07</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="box">
+        <div class="section-title">Customer Details</div>
+        <div class="kv">
+          <div><strong>Name</strong></div><div>Ashwin Surana</div>
+          <div><strong>GSTIN</strong></div><div>UNREGISTERED</div>
+          <div><strong>Delivery Address</strong></div><div>Suamndeep, 391760</div>
+          <div><strong>Place of Supply</strong></div><div>Gujarat (24)</div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="section-title">Service Details</div>
+        <div class="kv">
+          <div><strong>HSN Code</strong></div><div>999799</div>
+          <div><strong>Supply Description</strong></div><div>Other Services N.E.C</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" onclick="addRow('items2')">Add fee item</button>
+    </div>
+
+    <table aria-label="Items table (Page 2)">
+      <thead>
+        <tr>
+          <th>Sr.No</th>
+          <th>Particulars</th>
+          <th class="right">Taxable Amount</th>
+          <th class="right">CGST</th>
+          <th class="right">SGST</th>
+          <th class="right">Total</th>
+          <th class="row-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="items2">
+        <tr>
+          <td class="center">1</td>
+          <td><input class="name-input" value="Platform fee" /></td>
+          <td class="right">10.00</td>
+          <td class="right">0.90</td>
+          <td class="right">0.90</td>
+          <td class="right">11.80</td>
+          <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
+        </tr>
+        <!-- Template row for adding new fee items where only the name is editable; amounts remain 0 -->
+        <tr class="template" id="tmpl2" style="display:none;">
+          <td class="center"></td>
+          <td><input class="name-input" placeholder="New fee name" /></td>
+          <td class="right">0.00</td>
+          <td class="right">0.00</td>
+          <td class="right">0.00</td>
+          <td class="right">0.00</td>
+          <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="right"><strong>Total</strong></td>
+          <td class="right">10.00</td>
+          <td class="right">0.90</td>
+          <td class="right">0.90</td>
+          <td class="right">11.80</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p class="muted">Order ID: <strong>7138695734</strong> &nbsp; | &nbsp; Order Date: <strong>2025-08-07</strong></p>
+    <p class="muted">Amount of ₹11.8 settled through digital mode/payment received against Order id (7138695734) dated (2025-08-07)</p>
+    <p class="muted">Tax is not payable on reverse charge basis</p>
+
+    <p class="muted" style="margin-top: 8px;"><em>For Eternal Limited (formerly known as Zomato Limited)</em><br/>Authorised Signatory</p>
+    <p class="muted">
+      Communication Address: Pioneer Square, Ground Floor, Golf Course Extension, Gurugram, Haryana, 122102<br/>
+      Please refer to https://www.zomato.com/conditions for current version of full terms &amp; conditions which are incorporated in this invoice by reference.
+    </p>
+    <p class="muted">Powered by TCPDF (www.tcpdf.org)</p>
+    <div class="stamp">ORIGINAL FOR RECIPIENT</div>
+  </section>
+
+  <script>
+    // Add a new item row (name only) by cloning the hidden template row
+    function addRow(tbodyId) {
+      const tbody = document.getElementById(tbodyId);
+      const tmplId = tbodyId === 'items1' ? 'tmpl1' : 'tmpl2';
+      const template = document.getElementById(tmplId);
+      const clone = template.cloneNode(true);
+      clone.style.display = '';
+      clone.classList.remove('template');
+      clone.removeAttribute('id');
+
+      // For page 2, set Sr.No automatically
+      if (tbodyId === 'items2') {
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.template)'));
+        const srNo = rows.length + 1;
+        const srCell = clone.querySelector('td.center');
+        if (srCell) srCell.textContent = srNo;
+      }
+
+      tbody.appendChild(clone);
+    }
+
+    // Remove the row for the clicked "Delete" link
+    function removeRow(el) {
+      const row = el.closest('tr');
+      const tbody = row.parentElement;
+      row.remove();
+
+      // Re-number Sr.No on page 2
+      if (tbody.id === 'items2') {
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.template)'));
+        rows.forEach((tr, idx) => {
+          const srCell = tr.querySelector('td.center');
+          if (srCell) srCell.textContent = idx + 1;
+        });
+      }
+    }
+  </script>
+</body>
+</html>
