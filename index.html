@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Invoice Replica — Editable Product Names Only</title>
+  <title>Invoice Replica — Fully Editable</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -105,14 +105,16 @@
     }
     .btn:hover { background: #f0f0f0; }
 
-    /* Inputs for product names only */
-    input.name-input {
+    /* Inputs for names and amounts */
+    input.name-input, input.amount-input {
       width: 100%;
       border: 1px dashed #888;
       padding: 4px 6px;
       font-size: var(--fs);
     }
-    input.name-input:focus { outline: 1px solid #000; }
+    input.name-input:focus, input.amount-input:focus { outline: 1px solid #000; }
+    input.amount-input { text-align: right; }
+    input.tax-rate-input { width: 50px; text-align: center; }
 
     /* Delete links inside rows */
     .row-actions { white-space: nowrap; }
@@ -149,7 +151,7 @@
         page-break-after: always;
       }
       .controls { display: none !important; }
-      input.name-input {
+      input.name-input, input.amount-input, input.tax-rate-input {
         border: 0;
         padding: 0;
       }
@@ -162,7 +164,7 @@
   <!-- Controls (hidden when printing) -->
   <div class="controls" role="group" aria-label="Page actions">
     <button class="btn" onclick="window.print()">Save as PDF / Print</button>
-    <span class="muted">Tip: Edit product names below. Use "Add item" to add rows (amounts stay locked).</span>
+    <span class="muted">Tip: Edit product names and amounts. All values are editable and totals auto-calculate.</span>
   </div>
 
   <!-- =========================
@@ -220,65 +222,65 @@
       <tbody id="items1">
         <tr>
           <td><input class="name-input" value="Khichdi with Kadhi" /></td>
-          <td class="right">140</td>
-          <td class="right">56</td>
-          <td class="right">84</td>
-          <td class="center">2.5%</td>
-          <td class="right">2.1</td>
-          <td class="center">2.5%</td>
-          <td class="right">2.1</td>
-          <td class="right">88.2</td>
+          <td class="right"><input class="amount-input" value="140" onchange="calculateRow(this)" /></td>
+          <td class="right"><input class="amount-input" value="56" onchange="calculateRow(this)" /></td>
+          <td class="right net-value">84</td>
+          <td class="center"><input class="tax-rate-input" value="2.5" onchange="calculateRow(this)" />%</td>
+          <td class="right cgst-amount">2.1</td>
+          <td class="center"><input class="tax-rate-input" value="2.5" onchange="calculateRow(this)" />%</td>
+          <td class="right sgst-amount">2.1</td>
+          <td class="right row-total">88.2</td>
           <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
         </tr>
         <tr>
           <td><input class="name-input" value="Gulab Jamun [3 Pieces]" /></td>
-          <td class="right">60</td>
-          <td class="right">24</td>
-          <td class="right">36</td>
-          <td class="center">2.5%</td>
-          <td class="right">0.9</td>
-          <td class="center">2.5%</td>
-          <td class="right">0.9</td>
-          <td class="right">37.8</td>
+          <td class="right"><input class="amount-input" value="60" onchange="calculateRow(this)" /></td>
+          <td class="right"><input class="amount-input" value="24" onchange="calculateRow(this)" /></td>
+          <td class="right net-value">36</td>
+          <td class="center"><input class="tax-rate-input" value="2.5" onchange="calculateRow(this)" />%</td>
+          <td class="right cgst-amount">0.9</td>
+          <td class="center"><input class="tax-rate-input" value="2.5" onchange="calculateRow(this)" />%</td>
+          <td class="right sgst-amount">0.9</td>
+          <td class="right row-total">37.8</td>
           <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
         </tr>
         <!-- Template row for adding new items where only the name is editable; amounts remain 0 -->
         <tr class="template" id="tmpl1" style="display:none;">
           <td><input class="name-input" placeholder="New item name" /></td>
-          <td class="right">0</td>
-          <td class="right">0</td>
-          <td class="right">0</td>
-          <td class="center">—</td>
-          <td class="right">0</td>
-          <td class="center">—</td>
-          <td class="right">0</td>
-          <td class="right">0</td>
+          <td class="right"><input class="amount-input" value="0" onchange="calculateRow(this)" /></td>
+          <td class="right"><input class="amount-input" value="0" onchange="calculateRow(this)" /></td>
+          <td class="right net-value">0</td>
+          <td class="center"><input class="tax-rate-input" value="2.5" onchange="calculateRow(this)" />%</td>
+          <td class="right cgst-amount">0</td>
+          <td class="center"><input class="tax-rate-input" value="2.5" onchange="calculateRow(this)" />%</td>
+          <td class="right sgst-amount">0</td>
+          <td class="right row-total">0</td>
           <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
           <td class="right"><strong>Item(s) Total</strong></td>
-          <td class="right">200</td>
-          <td class="right">80</td>
-          <td class="right">120</td>
+          <td class="right" id="total-gross">200</td>
+          <td class="right" id="total-discount">80</td>
+          <td class="right" id="total-net">120</td>
           <td class="center"></td>
-          <td class="right">3</td>
+          <td class="right" id="total-cgst">3</td>
           <td class="center"></td>
-          <td class="right">3</td>
-          <td class="right">126</td>
+          <td class="right" id="total-sgst">3</td>
+          <td class="right" id="total-amount">126</td>
           <td></td>
         </tr>
         <tr>
           <td class="right"><strong>Total Value</strong></td>
           <td class="right"></td>
           <td class="right"></td>
-          <td class="right">120</td>
+          <td class="right" id="final-net">120</td>
           <td class="center"></td>
-          <td class="right">3</td>
+          <td class="right" id="final-cgst">3</td>
           <td class="center"></td>
-          <td class="right">3</td>
-          <td class="right">126</td>
+          <td class="right" id="final-sgst">3</td>
+          <td class="right" id="final-total">126</td>
           <td></td>
         </tr>
       </tfoot>
@@ -371,30 +373,30 @@
         <tr>
           <td class="center">1</td>
           <td><input class="name-input" value="Platform fee" /></td>
-          <td class="right">10.00</td>
-          <td class="right">0.90</td>
-          <td class="right">0.90</td>
-          <td class="right">11.80</td>
+          <td class="right"><input class="amount-input" value="10.00" onchange="calculatePage2Row(this)" /></td>
+          <td class="right cgst-amount2">0.90</td>
+          <td class="right sgst-amount2">0.90</td>
+          <td class="right row-total2">11.80</td>
           <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
         </tr>
         <!-- Template row for adding new fee items where only the name is editable; amounts remain 0 -->
         <tr class="template" id="tmpl2" style="display:none;">
           <td class="center"></td>
           <td><input class="name-input" placeholder="New fee name" /></td>
-          <td class="right">0.00</td>
-          <td class="right">0.00</td>
-          <td class="right">0.00</td>
-          <td class="right">0.00</td>
+          <td class="right"><input class="amount-input" value="0.00" onchange="calculatePage2Row(this)" /></td>
+          <td class="right cgst-amount2">0.00</td>
+          <td class="right sgst-amount2">0.00</td>
+          <td class="right row-total2">0.00</td>
           <td class="row-actions"><button class="link" onclick="removeRow(this)">Delete</button></td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
           <td colspan="2" class="right"><strong>Total</strong></td>
-          <td class="right">10.00</td>
-          <td class="right">0.90</td>
-          <td class="right">0.90</td>
-          <td class="right">11.80</td>
+          <td class="right" id="page2-total-taxable">10.00</td>
+          <td class="right" id="page2-total-cgst">0.90</td>
+          <td class="right" id="page2-total-sgst">0.90</td>
+          <td class="right" id="page2-total-amount">11.80</td>
           <td></td>
         </tr>
       </tfoot>
@@ -414,7 +416,119 @@
   </section>
 
   <script>
-    // Add a new item row (name only) by cloning the hidden template row
+    // Calculate row totals for Page 1 (Restaurant invoice)
+    function calculateRow(input) {
+      const row = input.closest('tr');
+      const grossInput = row.querySelector('.amount-input:nth-of-type(1)');
+      const discountInput = row.querySelector('.amount-input:nth-of-type(2)');
+      const cgstRateInput = row.querySelector('.tax-rate-input:nth-of-type(1)');
+      const sgstRateInput = row.querySelector('.tax-rate-input:nth-of-type(2)');
+      
+      const gross = parseFloat(grossInput.value) || 0;
+      const discount = parseFloat(discountInput.value) || 0;
+      const cgstRate = parseFloat(cgstRateInput.value) || 0;
+      const sgstRate = parseFloat(sgstRateInput.value) || 0;
+      
+      const netValue = gross - discount;
+      const cgstAmount = (netValue * cgstRate) / 100;
+      const sgstAmount = (netValue * sgstRate) / 100;
+      const total = netValue + cgstAmount + sgstAmount;
+      
+      row.querySelector('.net-value').textContent = netValue.toFixed(1);
+      row.querySelector('.cgst-amount').textContent = cgstAmount.toFixed(1);
+      row.querySelector('.sgst-amount').textContent = sgstAmount.toFixed(1);
+      row.querySelector('.row-total').textContent = total.toFixed(1);
+      
+      calculatePage1Totals();
+    }
+
+    // Calculate totals for Page 1
+    function calculatePage1Totals() {
+      const tbody = document.getElementById('items1');
+      const rows = Array.from(tbody.querySelectorAll('tr:not(.template)'));
+      
+      let totalGross = 0, totalDiscount = 0, totalNet = 0, totalCgst = 0, totalSgst = 0, totalAmount = 0;
+      
+      rows.forEach(row => {
+        const grossInput = row.querySelector('.amount-input:nth-of-type(1)');
+        const discountInput = row.querySelector('.amount-input:nth-of-type(2)');
+        if (grossInput && discountInput) {
+          const gross = parseFloat(grossInput.value) || 0;
+          const discount = parseFloat(discountInput.value) || 0;
+          const net = parseFloat(row.querySelector('.net-value').textContent) || 0;
+          const cgst = parseFloat(row.querySelector('.cgst-amount').textContent) || 0;
+          const sgst = parseFloat(row.querySelector('.sgst-amount').textContent) || 0;
+          const total = parseFloat(row.querySelector('.row-total').textContent) || 0;
+          
+          totalGross += gross;
+          totalDiscount += discount;
+          totalNet += net;
+          totalCgst += cgst;
+          totalSgst += sgst;
+          totalAmount += total;
+        }
+      });
+      
+      document.getElementById('total-gross').textContent = totalGross;
+      document.getElementById('total-discount').textContent = totalDiscount;
+      document.getElementById('total-net').textContent = totalNet;
+      document.getElementById('total-cgst').textContent = totalCgst.toFixed(1);
+      document.getElementById('total-sgst').textContent = totalSgst.toFixed(1);
+      document.getElementById('total-amount').textContent = totalAmount.toFixed(1);
+      
+      document.getElementById('final-net').textContent = totalNet;
+      document.getElementById('final-cgst').textContent = totalCgst.toFixed(1);
+      document.getElementById('final-sgst').textContent = totalSgst.toFixed(1);
+      document.getElementById('final-total').textContent = totalAmount.toFixed(1);
+    }
+
+    // Calculate row totals for Page 2 (Platform fees) - fixed 9% CGST/SGST
+    function calculatePage2Row(input) {
+      const row = input.closest('tr');
+      const taxableAmount = parseFloat(input.value) || 0;
+      const cgstRate = 9; // Fixed 9% CGST
+      const sgstRate = 9; // Fixed 9% SGST
+      
+      const cgstAmount = (taxableAmount * cgstRate) / 100;
+      const sgstAmount = (taxableAmount * sgstRate) / 100;
+      const total = taxableAmount + cgstAmount + sgstAmount;
+      
+      row.querySelector('.cgst-amount2').textContent = cgstAmount.toFixed(2);
+      row.querySelector('.sgst-amount2').textContent = sgstAmount.toFixed(2);
+      row.querySelector('.row-total2').textContent = total.toFixed(2);
+      
+      calculatePage2Totals();
+    }
+
+    // Calculate totals for Page 2
+    function calculatePage2Totals() {
+      const tbody = document.getElementById('items2');
+      const rows = Array.from(tbody.querySelectorAll('tr:not(.template)'));
+      
+      let totalTaxable = 0, totalCgst = 0, totalSgst = 0, totalAmount = 0;
+      
+      rows.forEach(row => {
+        const taxableInput = row.querySelector('.amount-input');
+        if (taxableInput) {
+          const taxable = parseFloat(taxableInput.value) || 0;
+          const cgst = parseFloat(row.querySelector('.cgst-amount2').textContent) || 0;
+          const sgst = parseFloat(row.querySelector('.sgst-amount2').textContent) || 0;
+          const total = parseFloat(row.querySelector('.row-total2').textContent) || 0;
+          
+          totalTaxable += taxable;
+          totalCgst += cgst;
+          totalSgst += sgst;
+          totalAmount += total;
+        }
+      });
+      
+      document.getElementById('page2-total-taxable').textContent = totalTaxable.toFixed(2);
+      document.getElementById('page2-total-cgst').textContent = totalCgst.toFixed(2);
+      document.getElementById('page2-total-sgst').textContent = totalSgst.toFixed(2);
+      document.getElementById('page2-total-amount').textContent = totalAmount.toFixed(2);
+    }
+
+    // Add a new item row by cloning the hidden template row
     function addRow(tbodyId) {
       const tbody = document.getElementById(tbodyId);
       const tmplId = tbodyId === 'items1' ? 'tmpl1' : 'tmpl2';
@@ -433,6 +547,13 @@
       }
 
       tbody.appendChild(clone);
+      
+      // Recalculate totals for the appropriate page
+      if (tbodyId === 'items1') {
+        calculatePage1Totals();
+      } else {
+        calculatePage2Totals();
+      }
     }
 
     // Remove the row for the clicked "Delete" link
@@ -448,8 +569,17 @@
           const srCell = tr.querySelector('td.center');
           if (srCell) srCell.textContent = idx + 1;
         });
+        calculatePage2Totals();
+      } else {
+        calculatePage1Totals();
       }
     }
+
+    // Initialize calculations on page load
+    window.addEventListener('load', function() {
+      calculatePage1Totals();
+      calculatePage2Totals();
+    });
   </script>
 </body>
 </html>
